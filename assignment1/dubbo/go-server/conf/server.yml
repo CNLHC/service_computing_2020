@@ -1,37 +1,39 @@
-check: true
-request_timeout : "3s"
-connect_timeout : "3s"
+# application config
 application:
-  organization : "buaa.sc"
+  organization : "buaa.sc.assignment1"
   name  : "Get Person client"
-  module : "person service client"
+  module : "person service server"
   version : "0.0.1"
   owner : "CNLHC"
   environment : "release"
 registries :
   "dockerzk":
     protocol: "zookeeper"
-    timeout	: "3s"
+    timeout : "3s"
     address: "127.0.0.1:2181"
     username: ""
     password: ""
-references:
+services:
   "PersonProvider":
     registry: "dockerzk"
     protocol : "dubbo"
-    interface : "buaa.sc.PersonProvider"
+    interface : "sc.buaa.person.PersonService"
+    loadbalance: "random"
+    warmup: "100"
     cluster: "failover"
-    methods :
+    methods:
       - name: "GetName"
         retries: 3
+        loadbalance: "random"
+
+protocols:
+  "dubbo":
+      name: "dubbo"
+      port: 20000
 protocol_conf:
   dubbo:
-    reconnect_interval: 0
-    connection_number: 1
-    heartbeat_period: "5s"
+    session_number: 700
     session_timeout: "180s"
-    pool_size: 64
-    pool_ttl: 600
     getty_session_param:
       compress_encoding: false
       tcp_no_delay: true
@@ -39,10 +41,10 @@ protocol_conf:
       keep_alive_period: "120s"
       tcp_r_buf_size: 262144
       tcp_w_buf_size: 65536
-      pkg_rq_size: 1025
+      pkg_rq_size: 1024
       pkg_wq_size: 512
       tcp_read_timeout: "1s"
       tcp_write_timeout: "5s"
       wait_timeout: "1s"
       max_msg_len: 1024000
-      session_name: "client"
+      session_name: "server"

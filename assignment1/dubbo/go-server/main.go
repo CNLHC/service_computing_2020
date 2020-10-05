@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "buaa/sc/pkg/provider"
+	_ "buaa/sc/assign1/server/pkg/provider"
 	"fmt"
 	"os"
 	"os/signal"

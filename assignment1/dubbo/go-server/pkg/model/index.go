@@ -8,7 +8,7 @@ import (
 )
 
 type Person struct {
-	gorm.Model
+	ID        uint `gorm:"primarykey"`
 	Name   string
 	Age    int
 	Gender bool

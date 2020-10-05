@@ -1,4 +1,4 @@
-module buaa/sc
+module buaa/sc/assign1/server
 
 go 1.14
 
@@ -18,6 +18,6 @@ require (
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
-	gorm.io/driver/sqlite v1.1.3 // indirect
-	gorm.io/gorm v1.20.2 // indirect
+	gorm.io/driver/sqlite v1.1.3
+	gorm.io/gorm v1.20.2
 )
