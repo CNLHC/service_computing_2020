@@ -49,8 +49,7 @@ object ConsumerApp extends App {
 		)
 	}
 	OParser.parse(parser1,args,Opt()) match{
-	  case  Some(opt) =>{
-		println(opt)
+	  case  Some(opt:Opt) =>{
 		val context = new ClassPathXmlApplicationContext("provider.xml")
 		context.start()
 		val consumer = context.getBean(classOf[PersonService])
@@ -67,18 +66,19 @@ object ConsumerApp extends App {
 			println(f"gender: $remote_gender%b")
 		case "SetName"=>
 			consumer.SetName(opt.name)
-			println(f"set name to ",opt.name)
+			println(f"set name to ${opt.name}")
 		case "SetAge"=>
 			consumer.SetAge(opt.age)
-			println(f"set age to",opt.age)
+			println(f"set age to ${opt.age}")
 		case "SetGender"=>
 			consumer.SetGender(opt.gender)
-			println(f"set genderto",opt.gender)
+			println(f"set genderto ${opt.gender}")
 		case m =>
 			println(f"$m is not an available procedure!\n")
 		}
 	  }
 	  case _ =>{}
 	}
+    System.exit(0)
   }
 }

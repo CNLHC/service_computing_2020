@@ -1,6 +1,7 @@
 target
 project/target
 project/project
-.bloop
+project/.bloop
+*.bloop
 .bsp
 .metals
