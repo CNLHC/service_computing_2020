@@ -1,0 +1,3 @@
+
+docker run -it --name axis --rm -p 8888:8080 temp
+docker build -t temp .
