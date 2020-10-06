@@ -23,7 +23,12 @@ references:
     cluster: "failover"
     methods :
       - name: "GetName"
-        retries: 3
+      - name: "SetName"
+      - name: "GetAge"
+      - name: "SetAge"
+      - name: "GetGender"
+      - name: "SetGender"
+      - name: "SayHello"
 protocol_conf:
   dubbo:
     reconnect_interval: 0

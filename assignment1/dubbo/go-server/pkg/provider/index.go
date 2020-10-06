@@ -2,10 +2,13 @@ package provider
 
 import (
 	"context"
-    hessian "github.com/apache/dubbo-go-hessian2"
+	"fmt"
+
+	hessian "github.com/apache/dubbo-go-hessian2"
+
+	"buaa/sc/assign1/server/pkg/model"
 
 	"github.com/apache/dubbo-go/config"
-	"buaa/sc/assign1/server/pkg/model"
 )
 type JavaString struct{
     payload string
@@ -54,6 +57,13 @@ func (u *PersonProvider) SetGender(ctx context.Context, req interface{},resp *bo
     Db.Save(&person)
     *resp=true
 	return nil
+}
+
+func (u *PersonProvider) SayHello(ctx context.Context) (string,error) {
+    Db := model.GetDB()
+    var person model.Person
+    Db.FirstOrCreate(&person,model.Person{ID:1})
+    return  fmt.Sprintf("Hello World! %s",person.Name),nil
 }
 
 func (u *PersonProvider) GetName(ctx context.Context) (string,error) {

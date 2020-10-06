@@ -23,8 +23,12 @@ services:
     cluster: "failover"
     methods:
       - name: "GetName"
-        retries: 3
-        loadbalance: "random"
+      - name: "SetName"
+      - name: "GetAge"
+      - name: "SetAge"
+      - name: "GetGender"
+      - name: "SetGender"
+      - name: "SayHello"
 
 protocols:
   "dubbo":
