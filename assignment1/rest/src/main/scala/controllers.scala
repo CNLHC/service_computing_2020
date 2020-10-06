@@ -45,6 +45,15 @@ class PersonController {
     response.getWriter.close()
   }
 
+  @GetMapping(path = Array("/sayHello"))
+  @ResponseBody
+  def sayHello(response: HttpServletResponse): Unit = {
+    getField(_.name) match {
+      case Some(e) => respOk(response, f"Hello World! $e")
+      case _       => println("error")
+    }
+  }
+
   @GetMapping(path = Array("/name"))
   @ResponseBody
   def getName(response: HttpServletResponse): Unit = {
