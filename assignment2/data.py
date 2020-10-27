@@ -1,27 +1,31 @@
 import numpy as np
 import os
 import pandas
+from abc import ABC
 
-class ds:  
-    def __init__(self,dsroot:str):
-        with open(os.path.join(dsroot,'dataset1','rtMatrix.txt'),"r") as fp:
-            self.rtMat = pandas.read_csv(fp,header=None,sep="\t").to_numpy()[:,:-1]
-        with open(os.path.join(dsroot,'dataset1','tpMatrix.txt'),"r") as fp:
-            self.tpMat = pandas.read_csv(fp,header=None,sep="\t").to_numpy()[:,:-1]
-        with open(os.path.join(dsroot,'dataset1','userlist.txt'),"r") as fp:
-            self.userList= pandas.read_csv(fp,sep="\t").iloc[1:]
-        with open(os.path.join(dsroot,'dataset1','wslist.txt'),"rb") as fp:
-            self.wsList= pandas.read_csv(fp,sep="\t",encoding="latin1").iloc[1:]
-        with open(os.path.join(dsroot,'dataset2','rtdata.txt'),"r") as fp:
-            self.rtdata = pandas.read_csv(fp,sep=" ",header=None).to_numpy()
-        with open(os.path.join(dsroot,'dataset2','tpdata.txt'),"r") as fp:
-            self.tpdata = pandas.read_csv(fp,sep=" ",header=None).to_numpy()
+DS_ROOT = "./wsdream-dataset"
 
 
-            
 
-dsroot = "./wsdream-dataset"
-a =ds(dsroot)
+class NNCR():
+    @classmethod
+    def predict(cls,data,shape=(142,4500,64)):
+        cls.rank = 10
+        U=np.zeros((shape[0],cls.rank))
+        S=np.zeros((shape[1],cls.rank))
+        T=np.zeros((shape[2],cls.rank))
+        
+
+class ds:
+    def __init__(self, dsroot: str):
+        with open(os.path.join(dsroot, 'dataset2-small', 'rtdata.txt'), "r") as fp:
+            raw_rtdata = pandas.read_csv(fp, sep=" ", header=None).to_numpy()
+            self.rtdata = np.zeros((142, 4500, 64))
+            for (uidx, sidx, tidx, val) in raw_rtdata:
+                self.rtdata[int(uidx)][int(sidx)][int(tidx)] = val
+            self.rtdata_missing = np.array(np.where(self.rtdata == 0))
 
 
-    
+a = ds(DS_ROOT)
+rank = np.linalg.matrix_rank(a.rtdata)
+print(rank, len(rank))
