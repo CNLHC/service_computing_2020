@@ -1,0 +1,3 @@
+[submodule "assignment2/wsdream-dataset"]
+	path = assignment2/wsdream-dataset
+	url = git@github.com:wsdream/wsdream-dataset.git

@@ -52,7 +52,7 @@ to quickly create a Cobra application.`,
 				personProvider.SetName(context.TODO(), name)
 				fmt.Printf("set name to: %s\n", name)
 			case "SetAge":
-				personProvider.SetAge(context.TODO(), age)
+				personProvider.SetAge(context.TODO(), int32(age))
 				fmt.Printf("set age to: %d\n", age)
 			case "SetGender":
 				personProvider.SetGender(context.TODO(), gender)

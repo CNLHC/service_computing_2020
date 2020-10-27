@@ -13,7 +13,7 @@ type PersonProvider struct {
 	GetGender func(ctx context.Context, rsp *bool) error
 
 	SetName   func(ctx context.Context, name string) (bool, error)
-	SetAge    func(ctx context.Context, aget uint16) (bool, error)
+	SetAge    func(ctx context.Context, aget int32) (bool, error)
 	SetGender func(ctx context.Context, gender bool) (bool, error)
 }
 

@@ -8,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-
 	"github.com/apache/dubbo-go/common/logger"
 	"github.com/apache/dubbo-go/config"
 
@@ -20,15 +19,15 @@ import (
 	_ "github.com/apache/dubbo-go/common/proxy/proxy_factory"
 
 	_ "github.com/apache/dubbo-go/cluster/loadbalance"
-	_ "github.com/apache/dubbo-go/registry/zookeeper"
 	_ "github.com/apache/dubbo-go/metadata/service/inmemory"
+	_ "github.com/apache/dubbo-go/registry/zookeeper"
 )
 
 var (
 	survivalTimeout = int(3e9)
 )
 
-func main(){
+func main() {
 	logger.Infof("start service")
 	config.Load()
 	initSignal()

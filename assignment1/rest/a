@@ -1,0 +1,146 @@
+
+\documentclass[12pt]{article}
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[toc,page]{appendix}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage[numbers]{natbib}
+\usepackage{textcomp}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{commath}
+\usepackage{transparent}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{adjustbox}
+\usepackage{indentfirst}
+
+\makeatletter
+\providecommand{\tabularnewline}{\\}
+\usepackage[caption=false,font=footnotesize]{subfig} 
+\usepackage[caption=false,font=footnotesize]{subfig}
+\@ifundefined{showcaptionsetup}{}{%
+\PassOptionsToPackage{caption=false}{subfig}}
+\usepackage{subfig}
+\makeatother
+
+\usepackage{makecell}
+\usepackage[official]{eurosym}
+\usepackage{comment}
+\usepackage{booktabs}
+
+\usepackage[unicode=true,
+ bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=1,
+ breaklinks=false,pdfborder={0 0 0},pdfborderstyle={},backref=false,colorlinks=false]
+ {hyperref}
+\hypersetup{pdftitle={Your Title},
+ pdfauthor={Your Name},
+ pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false}
+
+%-----------HEADER AND FOOTER DEFINITION-----------%
+
+\usepackage{fancyhdr}
+\renewcommand{\headheight}{0.7in}
+\setlength{\headwidth}{\textwidth}
+\rhead{% left
+\raisebox{0.25in}{\textcolor{gray}{\large Namen}}
+}
+\lhead{ % right
+  % \transparent{0.5}\includegraphics[height=0.6in]{Logo_novo_FEUPbranco.jpg}
+}
+\pagestyle{fancy}
+%\fancyhf{} % sets both header and footer to nothing
+\renewcommand{\headrulewidth}{0pt}
+
+
+
+
+%\usepackage{eurosym}
+\usepackage[section]{placeins}
+
+\renewcommand\theadalign{bc}
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadgape{\Gape[4pt]}
+\renewcommand\cellgape{\Gape[4pt]}
+
+\makeatletter
+\newcommand{\chapterauthor}[1]{%
+  {\parindent0pt\vspace*{-5pt}%
+  \linespread{1.1}\large\slshape#1%
+  \par\nobreak\vspace*{45pt}}
+  \@afterheading%
+}
+\makeatother
+\begin{document}
+
+% ------------------ TITLE PAGE -------------------
+
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+\setlength{\topmargin}{0in}
+\centering % Center everything on the page
+
+
+
+
+
+
+%---------------------------------------------------------------------------------
+%   HEADING SECTIONS
+%---------------------------------------------------------------------------------
+
+\textsc{\Large xxxxt }\\[1.5cm] 
+
+
+\HRule \\[0.4cm]
+{ \bfseries \textbf{ title:} Here\\[0.4cm] % Title of your document
+\HRule \\[1cm]
+}
+
+%----------------------------------------------------------------------
+%   AUTHOR SECTION
+%----------------------------------------------------------------------
+
+
+%\begin{minipage}[b][][b]{\linewidth}
+
+\end{titlepage}
+
+% ------------------------------- body --------------------
+
+%%%%%%%%--------- TABLE OF CONTENT ----------%%%%%%%%%%%%%%%
+
+\newpage
+\tableofcontents
+
+%%%%%%%%%%-------- ABSTRACT %%%%%%%%%%%%%%%
+\newpage
+\renewcommand{\abstractname}{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\begin{abstract}
+%  \paragraph{}
+    The fu 
+\end{abstract}
+
+%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%
+\newpage
+\section{Introduction} \label{introduction}
+
+In
+
+This report is divided in xx fs:
+\begin{itemize}
+    \item Chapter 2:
+    \item Chapter 3:
+    \item Chapter 4:
+    \item Chapter 5:
+\end{itemize}  
+
+\end{document}
