@@ -26,7 +26,7 @@ Class person
 
 [代码](./dubbo)
 
-基于`Dubbo`框架实现. 使用golang编写服务端，使用golang和scala分别编写客户端.
+基于`Dubbo`框架, 使用`golang`编写服务端, 使用`golang`和`Scala`分别编写客户端.
 
 复现指南:
 
@@ -36,7 +36,7 @@ Class person
     2. sc2020/goclient
     3. sc2020/scalaclient
 
-3. 启动一个`zookeeper`做注册中心
+3. 启动本地`zookeeper`注册中心
     ```
     docker run --name dubbo-zookeeper --network host --restart always -d zookeeper
     ```
@@ -44,7 +44,7 @@ Class person
     ```
     docker run --network host --rm sc2020/goserver
     ```
-5. 运行Dubbo测试程序
+5. 运行Dubbo测试程序(注: 可以通过修改客户端目录下的测试脚本测试不同Case)
     ```
     docker run --network host --rm sc2020/goclient
     docker run --network host --rm sc2020/scalaclient
@@ -54,37 +54,42 @@ Class person
 
 [代码](./rest)
 
-基于`Spring Boot`框架，使用Scala语言编写。
+基于`Spring Boot`框架，使用`Scala`语言编写。
 
 复现指南
 
 1. 安装 `sbt`
 2. 运行
 ```
-cd rest
-sbt
-run
-
+cd rest;
+sbt;
+sbt> run;
 ```
+
 3. 测试
 
 ```
 bash ./test.sh
 ```
 
-## Axis实现
+## Web服务实现
 
-基于 `Axis`框架，使用Java语言编写.
+
+[代码](./axis)
+
+基于 `Apache Axis`框架，使用`Java`语言编写. 生成的`wsdl`文件位于[./axis/PersonServices.wsdl](./axis/PersonServices.wsdl)
 
 复现指南
 
 1. 构建镜像
 ```
-cd axis
+cd axis;
+#下载axis2文件
+wget https://cnpublicstatic.oss-cn-beijing.aliyuncs.com/sc2020/axis2.war ;
 docker build -t sc2020/axis .
 ```
 
-2. 运行镜像
+2. 运行镜像，使用`Apache Tomcat`托管Web服务
 ```
 docker run --rm --network host sc2020/axis
 ```
