@@ -1,8 +1,8 @@
-from method import Method
+from abcmethod import Method
 import numpy as np
 
 
-class NNCR(Method):
+class NNCP(Method):
     @classmethod
     def _Iterative(cls, U, S, T, I, J, K, getdata, rank):
         U = U.copy()

@@ -13,6 +13,12 @@ class Method(ABC):
         RMSE = np.sqrt(np.sum(np.power(np.abs(data-pdata), 2))/pcount)
         return RMSE
 
+    @classmethod
+    def nonzero_mean(cls, data, axis):
+        t = (data != 0).sum(axis=axis)
+        t[t == 0] = 1
+        return data.sum(axis=axis) / t
+
     @abstractclassmethod
-    def predict(cls, data, shape=(142, 4500, 64), pcount=1):
+    def predict(cls, data, shape=(142, 4500, 64), pcount=1, ds=None):
         pass

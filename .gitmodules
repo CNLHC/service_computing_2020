@@ -1,3 +1,9 @@
 [submodule "assignment2/wsdream-dataset"]
 	path = assignment2/wsdream-dataset
 	url = git@github.com:wsdream/wsdream-dataset.git
+[submodule "assignment4/cassandra"]
+	path = assignment4/cassandra
+	url = https://github.com/apache/cassandra
+[submodule "assignment4/hbase"]
+	path = assignment4/hbase
+	url = https://github.com/apache/hbase
