@@ -10,3 +10,9 @@
 [submodule "assignment4/WALA"]
 	path = assignment4/WALA
 	url = https://github.com/wala/WALA.git
+[submodule "assignment4/agent/mapreduce-introduction"]
+	path = assignment4/agent/mapreduce-introduction
+	url = git@github.com:CNLHC/mapreduce-introduction.git
+[submodule "assignment4/FlameGraph"]
+	path = assignment4/FlameGraph
+	url = https://github.com/brendangregg/FlameGraph

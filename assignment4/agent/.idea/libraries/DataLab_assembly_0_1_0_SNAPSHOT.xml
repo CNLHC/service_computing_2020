@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="DataLab-assembly-0.1.0-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/mapreduce-introduction/target/scala-2.12/DataLab-assembly-0.1.0-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
