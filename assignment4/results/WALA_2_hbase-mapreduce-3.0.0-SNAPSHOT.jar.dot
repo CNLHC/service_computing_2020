@@ -1,0 +1,6 @@
+digraph "DirectedGraph" {
+graph [label = "Keywords Analysis for 2_hbase-mapreduce-3.0.0-SNAPSHOT.jar", labelloc=t, concentrate = true];center=true;fontsize=6;node [ color=blue,shape="box"fontsize=6,fontcolor=black,fontname=Arial];edge [ color=black,fontsize=6,fontcolor=black,fontname=Arial]; 
+   "Lorg.apache.hadoop.hbase.mapreduce.replication.VerifyReplication$Verifier$Counters" [ label="Lorg.apache.hadoop.hbase.mapreduce.replication.VerifyReplication$Verifier$Counters"]
+   "Lorg.apache.hadoop.hbase.mapreduce.replication.VerifyReplication$1" [ label="Lorg.apache.hadoop.hbase.mapreduce.replication.VerifyReplication$1"]
+
+}

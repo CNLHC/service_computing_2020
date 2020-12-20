@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="sbt: org.eclipse.platform:org.eclipse.text:3.10.400:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/org/eclipse/platform/org.eclipse.text/3.10.400/org.eclipse.text-3.10.400.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/org/eclipse/platform/org.eclipse.text/3.10.400/org.eclipse.text-3.10.400-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/org/eclipse/platform/org.eclipse.text/3.10.400/org.eclipse.text-3.10.400-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

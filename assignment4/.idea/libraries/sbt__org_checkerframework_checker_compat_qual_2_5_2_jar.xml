@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="sbt: org.checkerframework:checker-compat-qual:2.5.2:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/org/checkerframework/checker-compat-qual/2.5.2/checker-compat-qual-2.5.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/org/checkerframework/checker-compat-qual/2.5.2/checker-compat-qual-2.5.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/org/checkerframework/checker-compat-qual/2.5.2/checker-compat-qual-2.5.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

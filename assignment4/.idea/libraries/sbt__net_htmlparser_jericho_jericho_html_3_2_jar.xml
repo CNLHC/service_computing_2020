@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="sbt: net.htmlparser.jericho:jericho-html:3.2:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/net/htmlparser/jericho/jericho-html/3.2/jericho-html-3.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/net/htmlparser/jericho/jericho-html/3.2/jericho-html-3.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.cache/coursier/v1/https/maven.aliyun.com/repository/public/net/htmlparser/jericho/jericho-html/3.2/jericho-html-3.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

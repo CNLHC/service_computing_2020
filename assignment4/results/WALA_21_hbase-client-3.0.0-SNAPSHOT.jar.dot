@@ -1,0 +1,30 @@
+digraph "DirectedGraph" {
+graph [label = "Keywords Analysis for 21_hbase-client-3.0.0-SNAPSHOT.jar", labelloc=t, concentrate = true];center=true;fontsize=6;node [ color=blue,shape="box"fontsize=6,fontcolor=black,fontname=Arial];edge [ color=black,fontsize=6,fontcolor=black,fontname=Arial]; 
+   "Lorg.apache.hadoop.hbase.replication.ReplicationLoadSink" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationLoadSink"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSelector" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSelector"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaMode"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig$ReplicationPeerConfigBuilderImpl" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig$ReplicationPeerConfigBuilderImpl"]
+   "Lorg.apache.hadoop.hbase.client.RegionReplicaUtil" [ label="Lorg.apache.hadoop.hbase.client.RegionReplicaUtil"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSimpleSelector" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSimpleSelector"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig"]
+   "Lorg.apache.hadoop.hbase.replication.SyncReplicationState" [ label="Lorg.apache.hadoop.hbase.replication.SyncReplicationState"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig$1" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig$1"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$1" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$1"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$2" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$2"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$3" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$3"]
+   "Lorg.apache.hadoop.hbase.client.RawAsyncHBaseAdmin$ReplicationProcedureBiConsumer" [ label="Lorg.apache.hadoop.hbase.client.RawAsyncHBaseAdmin$ReplicationProcedureBiConsumer"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSimpleSelector$StaleLocationCacheEntry" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSimpleSelector$StaleLocationCacheEntry"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationPeerDescription" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationPeerDescription"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationLoadSource$1" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationLoadSource$1"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationLoadSource" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationLoadSource"]
+   "Lorg.apache.hadoop.hbase.client.replication.ReplicationPeerConfigUtil" [ label="Lorg.apache.hadoop.hbase.client.replication.ReplicationPeerConfigUtil"]
+   "Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSelectorFactory" [ label="Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSelectorFactory"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationLoadSource$ReplicationLoadSourceBuilder" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationLoadSource$ReplicationLoadSourceBuilder"]
+   "Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfigBuilder" [ label="Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfigBuilder"]
+ "Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSelector" -> "Lorg.apache.hadoop.hbase.client.CatalogReplicaLoadBalanceSimpleSelector" 
+ "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode" -> "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$1" 
+ "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode" -> "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$2" 
+ "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode" -> "Lorg.apache.hadoop.hbase.client.CatalogReplicaMode$3" 
+ "Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfigBuilder" -> "Lorg.apache.hadoop.hbase.replication.ReplicationPeerConfig$ReplicationPeerConfigBuilderImpl" 
+
+}

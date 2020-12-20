@@ -7,3 +7,6 @@
 [submodule "assignment4/hbase"]
 	path = assignment4/hbase
 	url = https://github.com/apache/hbase
+[submodule "assignment4/WALA"]
+	path = assignment4/WALA
+	url = https://github.com/wala/WALA.git
