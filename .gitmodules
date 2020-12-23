@@ -16,3 +16,6 @@
 [submodule "assignment4/FlameGraph"]
 	path = assignment4/FlameGraph
 	url = https://github.com/brendangregg/FlameGraph
+[submodule "assignment3/unmanaged/attic-ode"]
+	path = assignment3/unmanaged/attic-ode
+	url = https://github.com/apache/attic-ode

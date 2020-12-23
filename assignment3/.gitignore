@@ -1,0 +1,5 @@
+/unmanaged
+**target
+*.metals
+.bsp
+*.metadata
