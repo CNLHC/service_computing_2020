@@ -4,22 +4,12 @@
 
 [BPEL(Business Process Execution Language)][BPELStandard]是一种基于XML的描述性语言，可以实现对SOA服务的调度。
 
-本次实验中，我使用[Apache Axis](ApacheAxis)创建了4个Web服务，并使用[Apache ODE]对qi 
-
-
-ganshou
-
-gongzuo 
-
-kanfa 
-
-
-
-
-
-
+本次实验中，我使用[Apache Axis](ApacheAxis)创建了4个Web服务，并使用[Apache ODE]对这四个服务进行编排。
 
 ## 实验过程
+
+1. 安装eclipse以及BPEL editor插件,([安装方法])
+2. 
 
 ## 实验结果
 
