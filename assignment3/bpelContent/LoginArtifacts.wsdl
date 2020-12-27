@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:p="http://www.w3.org/2001/XMLSchema"
+    xmlns:plnk="http://docs.oasis-open.org/wsbpel/2.0/plnktype"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:tns="http://sc.buaa.assignment3"
+    xmlns:vprop="http://docs.oasis-open.org/wsbpel/2.0/varprop" name="Login" targetNamespace="http://sc.buaa.assignment3"
+    xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+    xmlns:http="http://schemas.xmlsoap.org/wsdl/http/">
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     TYPE DEFINITION - List of types participating in this BPEL process 
+     The BPEL Designer will generate default request and response types
+     but you can define or import any XML Schema type and use them as part 
+     of the message types.
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+
+    <types>
+        <schema xmlns="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://sc.buaa.assignment3">
+            <element name="Ages">
+                <complexType>
+                    <sequence>
+                        <element name="age" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="FetchBasicInfo">
+                <complexType>
+                    <sequence>
+                        <element name="symbol" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="FetchBasicInfoResponse">
+                <complexType>
+                    <sequence>
+                        <element name="out" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="sayHelloResponse">
+                <complexType>
+                    <sequence>
+                        <element name="out" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="FetchHistoryData">
+                <complexType>
+                    <sequence>
+                        <element name="in" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="FetchHistoryDataResponse">
+                <complexType>
+                    <sequence>
+                        <element name="out" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="GenerateIndex">
+                <complexType>
+                    <sequence>
+                        <element name="in" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="GenerateIndexResponse">
+                <complexType>
+                    <sequence>
+                        <element name="out" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="GetNews">
+                <complexType>
+                    <sequence>
+                        <element name="in" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="GetNewsResponse">
+                <complexType>
+                    <sequence>
+                        <element name="out" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="ProcessRequest">
+                <complexType>
+                    <sequence>
+                        <element name="symbol" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="ProcessResponse">
+                <complexType>
+                    <sequence>
+                        <element name="BasicInfo" type="string"></element>
+                        <element name="HistoryData" type="string"></element>
+                        <element name="TechnicalAnalysis" type="string"></element>
+                        <element name="FundamentalAnalysis" type="string"></element>
+                    </sequence>
+                </complexType>
+            </element>
+        </schema>
+    </types>
+
+    <plnk:partnerLinkType name="TechnicalAnalysisLT">
+        <plnk:role name="caller" portType="tns:TechnicalAnalysisPT"/>
+    </plnk:partnerLinkType>
+    <plnk:partnerLinkType name="FundamentalAnalysisLT">
+        <plnk:role name="fundamentalAnalysis" portType="tns:FundamentalAnalysisPT"/>
+    </plnk:partnerLinkType>
+    <plnk:partnerLinkType name="BasicInfoLT">
+        <plnk:role name="basicInfo" portType="tns:BasicInfoPT"/>
+    </plnk:partnerLinkType>
+    <plnk:partnerLinkType name="HistoryDataLT">
+        <plnk:role name="historyData" portType="tns:HistoryDataPT"/>
+        <plnk:role name="basicInfo" portType="tns:BasicInfoPT"/>
+    </plnk:partnerLinkType>
+
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     SERVICE DEFINITION - A service groups a set of ports into
+     a service unit.
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <message name="FetchBasicInfoRequest">
+        <part name="parameters" element="tns:FetchBasicInfo"></part>
+    </message>
+    <message name="FetchBasicInfoResponse">
+        <part name="parameters" element="tns:FetchBasicInfoResponse"></part>
+    </message>
+    <message name="FetchHistoryDataRequest">
+        <part name="parameters" element="tns:FetchHistoryData"></part>
+    </message>
+    <message name="FetchHistoryDataResponse">
+        <part name="parameters" element="tns:FetchHistoryDataResponse"></part>
+    </message>
+    <message name="GenerateIndexRequest">
+        <part name="parameters" element="tns:GenerateIndex"></part>
+    </message>
+    <message name="GenerateIndexResponse">
+        <part name="parameters" element="tns:GenerateIndexResponse"></part>
+    </message>
+    <message name="GetNewsRequest">
+        <part name="parameters" element="tns:GetNews"></part>
+    </message>
+    <message name="GetNewsResponse">
+        <part name="parameters" element="tns:GetNewsResponse"></part>
+    </message>
+    <message name="ProcessRequest">
+        <part name="parameters" element="tns:ProcessRequest"></part>
+    </message>
+    <message name="ProcessResponse">
+        <part name="parameters" element="tns:ProcessResponse"></part>
+    </message>
+
+    <portType name="BasicInfoPT">
+        <operation name="process">
+            <input message="tns:ProcessRequest"></input>
+            <output message="tns:ProcessResponse"></output>
+        </operation>
+        <operation name="FetchBasicInfo">
+            <input message="tns:FetchBasicInfoRequest"></input>
+            <output message="tns:FetchBasicInfoResponse"></output>
+        </operation>
+    </portType>
+    <portType name="HistoryDataPT">
+        <operation name="FetchHistoryData">
+            <input message="tns:FetchHistoryDataRequest"></input>
+            <output message="tns:FetchHistoryDataResponse"></output>
+        </operation>
+    </portType>
+    <portType name="TechnicalAnalysisPT">
+        <operation name="GenerateIndex">
+            <input message="tns:GenerateIndexRequest"></input>
+            <output message="tns:GenerateIndexResponse"></output>
+        </operation>
+    </portType>
+    <portType name="FundamentalAnalysisPT">
+        <operation name="GetNews">
+            <input message="tns:GetNewsRequest"></input>
+            <output message="tns:GetNewsResponse"></output>
+        </operation>
+    </portType>
+
+    <binding name="BasicinfoBinding" type="tns:BasicInfoPT">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+        <operation name="process">
+            <soap:operation soapAction="process" style="document"/>
+            <input>
+                <soap:body use="literal" />
+            </input>
+            <output>
+                <soap:body use="literal" />
+            </output>
+        </operation>
+        <operation name="FetchBasicInfo">
+            <soap:operation soapAction="FetchBasicInfo" style="document"/>
+            <input>
+                <soap:body use="literal" />
+            </input>
+            <output>
+                <soap:body use="literal" />
+            </output>
+        </operation>
+    </binding>
+    <binding name="TechnicalAnalysisBinding" type="tns:TechnicalAnalysisPT">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+        <operation name="GenerateIndex">
+            <soap:operation soapAction="GenerateIndex" style="document"/>
+            <input>
+                <soap:body use="literal" />
+            </input>
+            <output>
+                <soap:body use="literal" />
+            </output>
+        </operation>
+    </binding>
+    <binding name="FundamentalAnalysisBinding" type="tns:FundamentalAnalysisPT">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+        <operation name="GetNews">
+            <soap:operation soapAction="GetNews" style="document"/>
+            <input>
+                <soap:body use="literal" />
+            </input>
+            <output>
+                <soap:body use="literal" />
+            </output>
+        </operation>
+    </binding>
+    <binding name="HistoryDataBinding" type="tns:HistoryDataPT">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+        <operation name="FetchHistoryData">
+            <soap:operation soapAction="FetchHistoryData" style="document"/>
+            <input>
+                <soap:body use="literal" />
+            </input>
+            <output>
+                <soap:body use="literal" />
+            </output>
+        </operation>
+    </binding>
+    <service name="BasicInfo">
+        <port name="BasicInfoPort" binding="tns:BasicinfoBinding">
+            <soap:address location="http://localhost:4567/ode/processes/BasicInfo"/>
+        </port>
+    </service>
+    <service name="HistoryData">
+        <port name="HistoryDataPort" binding="tns:HistoryDataBinding">
+            <soap:address location="http://localhost:4567/ode/processes/HistoryData" />
+        </port>
+    </service>
+    <service name="TechnicalAnalysis">
+        <port name="TechnicalAnalysisPort" binding="tns:TechnicalAnalysisBinding">
+            <soap:address location="http://localhost:4567/ode/processes/TechnicalAnalysis" />
+        </port>
+    </service>
+    <service name="FundamentalAnalysis">
+        <port name="FundamentalAnalysisPort" binding="tns:FundamentalAnalysisBinding">
+            <soap:address location="http://localhost:4567/ode/processes/FundamentalAnalysis" />
+        </port>
+    </service>
+</definitions>

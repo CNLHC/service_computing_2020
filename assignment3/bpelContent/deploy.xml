@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deploy xmlns="http://www.apache.org/ode/schemas/dd/2007/03" xmlns:sc.buaa.assignment3="http://sc.buaa.assignment3" xmlns:sc.buaa.sample="sc.buaa.sample">
+  <process name="sc.buaa.assignment3:Login">
+    <active>true</active>
+    <retired>false</retired>
+    <in-memory>false</in-memory>
+    <process-events generate="all"/>
+    <provide partnerLink="GetBasicInfo">
+      <service name="sc.buaa.assignment3:BasicInfo" port="BasicInfoPort"/>
+    </provide>
+    <provide partnerLink="GetHistoryData">
+      <service name="sc.buaa.assignment3:HistoryData" port="HistoryDataPort"/>
+    </provide>
+    <provide partnerLink="TechnicalAnalysisLink">
+      <service name="sc.buaa.assignment3:TechnicalAnalysis" port="TechnicalAnalysisPort"/>
+    </provide>
+    <provide partnerLink="FundamentalAnalysisLink">
+      <service name="sc.buaa.assignment3:FundamentalAnalysis" port="FundamentalAnalysisPort"/>
+    </provide>
+    <invoke partnerLink="GetHistoryData">
+      <service name="sc.buaa.assignment3:HistoryData" port="HistoryDataPort"/>
+    </invoke>
+    <invoke partnerLink="GetBasicInfo">
+      <service name="sc.buaa.assignment3:BasicInfo" port="BasicInfoPort"/>
+    </invoke>
+    <invoke partnerLink="TechnicalAnalysisLink">
+      <service name="sc.buaa.assignment3:TechnicalAnalysis" port="TechnicalAnalysisPort"/>
+    </invoke>
+    <invoke partnerLink="FundamentalAnalysisLink">
+      <service name="sc.buaa.assignment3:FundamentalAnalysis" port="FundamentalAnalysisPort"/>
+    </invoke>
+  </process>
+</deploy>
