@@ -8,14 +8,18 @@
 
 ## 实验过程
 
-1. 安装eclipse以及BPEL editor插件,([安装方法])
-2. 
+1. 安装eclipse以及BPEL editor插件,(详见[环境安装])
+2. 构建简单的web服务,代码参见[./src](./src)
+3. 编写BPEL文件和WSDL文件
+4. 使用`tomcat`部署服务([服务部署])并测试
 
 ## 实验结果
 
 ## 结论
 
+
 ## 附录
 
-
 [BPELStandard]:(http://docs.oasis-open.org/wsbpel/2.0/OS/wsbpel-v2.0-OS.html)
+[环境安装]:(./installation.md)
+[服务部署]:(./installation.md)
