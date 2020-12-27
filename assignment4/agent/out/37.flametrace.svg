@@ -1,0 +1,984 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="470" onload="init(evt)" viewBox="0 0 1200 470" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+	}
+
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom();
+			zoom(target);
+		}
+		else if (e.target.id == "unzoom") unzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+	}, false)
+
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+		return;
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		// Fit in full text width
+		if (/^ *$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+			return;
+
+		for (var x = txt.length - 2; x > 0; x--) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom() {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			update_text(el[i]);
+		}
+		search();
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) {
+				currentSearchTerm = term;
+				search();
+			}
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (currentSearchTerm === null) return;
+		var term = currentSearchTerm;
+
+		var re = new RegExp(term, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="470.0" fill="url(#background)"  />
+<text id="title" x="600.00" y="24" >Flame Graph</text>
+<text id="details" x="10.00" y="453" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1090.00" y="24" >Search</text>
+<text id="ignorecase" x="1174.00" y="24" >ic</text>
+<text id="matched" x="1090.00" y="453" > </text>
+<g id="frames">
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (40,792 samples, 0.09%)</title><rect x="937.3" y="373" width="1.1" height="15.0" fill="rgb(209,42,44)" rx="2" ry="2" />
+<text  x="940.29" y="383.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1201) (8,682,278 samples, 19.35%)</title><rect x="961.7" y="405" width="228.3" height="15.0" fill="rgb(244,182,7)" rx="2" ry="2" />
+<text  x="964.69" y="415.5" >org.apache.hadoop.hdfs.DataStr..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$BlockToWrite.toString(DataStreamer.java:239) (363,240 samples, 0.81%)</title><rect x="10.0" y="357" width="9.6" height="15.0" fill="rgb(251,24,10)" rx="2" ry="2" />
+<text  x="13.00" y="367.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (282,707 samples, 0.63%)</title><rect x="215.8" y="213" width="7.5" height="15.0" fill="rgb(207,153,51)" rx="2" ry="2" />
+<text  x="218.84" y="223.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$BlockToWrite.setNumBytes(DataStreamer.java:229) (50,112 samples, 0.11%)</title><rect x="956.8" y="389" width="1.3" height="15.0" fill="rgb(244,229,17)" rx="2" ry="2" />
+<text  x="959.77" y="399.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getSeqno(PipelineAck.java:134) (46,451 samples, 0.10%)</title><rect x="935.0" y="389" width="1.2" height="15.0" fill="rgb(239,152,20)" rx="2" ry="2" />
+<text  x="938.00" y="399.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getECNFromHeader(PipelineAck.java:230) (245,267 samples, 0.55%)</title><rect x="948.1" y="389" width="6.4" height="15.0" fill="rgb(242,166,42)" rx="2" ry="2" />
+<text  x="951.10" y="399.5" ></text>
+</g>
+<g >
+<title>java.lang.String.valueOf(String.java:2994) (363,240 samples, 0.81%)</title><rect x="10.0" y="373" width="9.6" height="15.0" fill="rgb(213,206,15)" rx="2" ry="2" />
+<text  x="13.00" y="383.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (144,014 samples, 0.32%)</title><rect x="950.8" y="373" width="3.7" height="15.0" fill="rgb(240,19,41)" rx="2" ry="2" />
+<text  x="953.76" y="383.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto$1.parsePartialFrom(DataTransferProtos.java:18656) (4,327,063 samples, 9.64%)</title><rect x="21.4" y="277" width="113.8" height="15.0" fill="rgb(227,150,52)" rx="2" ry="2" />
+<text  x="24.42" y="287.5" >org.apache.had..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getSeqno(PipelineAck.java:134) (39,701 samples, 0.09%)</title><rect x="936.2" y="389" width="1.1" height="15.0" fill="rgb(217,97,18)" rx="2" ry="2" />
+<text  x="939.23" y="399.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (26,960 samples, 0.06%)</title><rect x="21.4" y="53" width="0.7" height="15.0" fill="rgb(217,169,4)" rx="2" ry="2" />
+<text  x="24.43" y="63.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1098) (40,872 samples, 0.09%)</title><rect x="937.3" y="405" width="1.1" height="15.0" fill="rgb(208,214,17)" rx="2" ry="2" />
+<text  x="940.29" y="415.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (4,349,914 samples, 9.69%)</title><rect x="545.9" y="309" width="114.4" height="15.0" fill="rgb(231,2,40)" rx="2" ry="2" />
+<text  x="548.90" y="319.5" >xyz.cnworkshop..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (282,707 samples, 0.63%)</title><rect x="215.8" y="229" width="7.5" height="15.0" fill="rgb(210,86,6)" rx="2" ry="2" />
+<text  x="218.84" y="239.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (3,757,020 samples, 8.37%)</title><rect x="223.3" y="245" width="98.8" height="15.0" fill="rgb(227,128,47)" rx="2" ry="2" />
+<text  x="226.27" y="255.5" >xyz.cnworks..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (5,621 samples, 0.01%)</title><rect x="10.0" y="245" width="0.1" height="15.0" fill="rgb(249,136,18)" rx="2" ry="2" />
+<text  x="13.00" y="255.5" ></text>
+</g>
+<g >
+<title>java.io.FilterInputStream.read(FilterInputStream.java:83) (17,308,346 samples, 38.57%)</title><rect x="205.1" y="357" width="455.2" height="15.0" fill="rgb(222,67,49)" rx="2" ry="2" />
+<text  x="208.14" y="367.5" >java.io.FilterInputStream.read(FilterInputStream.java:83)</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (46,251 samples, 0.10%)</title><rect x="935.0" y="373" width="1.2" height="15.0" fill="rgb(245,124,34)" rx="2" ry="2" />
+<text  x="938.01" y="383.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (1,070,726 samples, 2.39%)</title><rect x="76.8" y="245" width="28.2" height="15.0" fill="rgb(224,112,40)" rx="2" ry="2" />
+<text  x="79.82" y="255.5" >x..</text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout.doIO(SocketIOWithTimeout.java:157) (4,280,123 samples, 9.54%)</title><rect x="209.5" y="277" width="112.6" height="15.0" fill="rgb(254,18,8)" rx="2" ry="2" />
+<text  x="212.52" y="287.5" >org.apache.ha..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (5,981,814 samples, 13.33%)</title><rect x="777.7" y="373" width="157.3" height="15.0" fill="rgb(205,80,44)" rx="2" ry="2" />
+<text  x="780.70" y="383.5" >xyz.cnworkshop.Profi..</text>
+</g>
+<g >
+<title>java.io.FilterInputStream.read(FilterInputStream.java:83) (17,308,346 samples, 38.57%)</title><rect x="205.1" y="341" width="455.2" height="15.0" fill="rgb(217,47,24)" rx="2" ry="2" />
+<text  x="208.14" y="351.5" >java.io.FilterInputStream.read(FilterInputStream.java:83)</text>
+</g>
+<g >
+<title>java.io.FilterInputStream.read(FilterInputStream.java:107) (1,124,016 samples, 2.50%)</title><rect x="21.4" y="181" width="29.6" height="15.0" fill="rgb(234,159,24)" rx="2" ry="2" />
+<text  x="24.43" y="191.5" >ja..</text>
+</g>
+<g >
+<title>org.apache.hadoop.util.LimitInputStream.&lt;init&gt;(LimitInputStream.java:48) (3,940 samples, 0.01%)</title><rect x="660.3" y="357" width="0.1" height="15.0" fill="rgb(251,195,8)" rx="2" ry="2" />
+<text  x="663.29" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck$StatusFormat.getStatus(PipelineAck.java:78) (96,463 samples, 0.21%)</title><rect x="942.0" y="373" width="2.5" height="15.0" fill="rgb(235,186,31)" rx="2" ry="2" />
+<text  x="945.00" y="383.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (39,611 samples, 0.09%)</title><rect x="936.2" y="357" width="1.1" height="15.0" fill="rgb(207,45,12)" rx="2" ry="2" />
+<text  x="939.24" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.readFields(PipelineAck.java:213) (28,829,143 samples, 64.25%)</title><rect x="19.6" y="389" width="758.1" height="15.0" fill="rgb(236,149,37)" rx="2" ry="2" />
+<text  x="22.59" y="399.5" >org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.readFields(PipelineAck.java:213)</text>
+</g>
+<g >
+<title>com.google.protobuf.AbstractParser.checkMessageInitialized(AbstractParser.java:70) (69,652 samples, 0.16%)</title><rect x="19.6" y="309" width="1.8" height="15.0" fill="rgb(217,13,45)" rx="2" ry="2" />
+<text  x="22.59" y="319.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (981,864 samples, 2.19%)</title><rect x="51.0" y="213" width="25.8" height="15.0" fill="rgb(215,107,16)" rx="2" ry="2" />
+<text  x="54.00" y="223.5" >j..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (158,104 samples, 0.35%)</title><rect x="15.4" y="325" width="4.2" height="15.0" fill="rgb(230,49,48)" rx="2" ry="2" />
+<text  x="18.39" y="335.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (1,436,206 samples, 3.20%)</title><rect x="167.4" y="341" width="37.7" height="15.0" fill="rgb(209,207,42)" rx="2" ry="2" />
+<text  x="170.37" y="351.5" >jav..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (100,813 samples, 0.22%)</title><rect x="948.1" y="341" width="2.7" height="15.0" fill="rgb(233,116,50)" rx="2" ry="2" />
+<text  x="951.11" y="351.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getHeaderFlag(PipelineAck.java:152) (82,672 samples, 0.18%)</title><rect x="954.6" y="389" width="2.1" height="15.0" fill="rgb(219,184,42)" rx="2" ry="2" />
+<text  x="957.56" y="399.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (166,445 samples, 0.37%)</title><rect x="205.1" y="245" width="4.4" height="15.0" fill="rgb(233,156,30)" rx="2" ry="2" />
+<text  x="208.14" y="255.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (78,402 samples, 0.17%)</title><rect x="10.1" y="261" width="2.1" height="15.0" fill="rgb(246,19,29)" rx="2" ry="2" />
+<text  x="13.15" y="271.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (3,940 samples, 0.01%)</title><rect x="660.3" y="325" width="0.1" height="15.0" fill="rgb(216,9,18)" rx="2" ry="2" />
+<text  x="663.29" y="335.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto.&lt;init&gt;(DataTransferProtos.java:18544) (1,124,016 samples, 2.50%)</title><rect x="21.4" y="245" width="29.6" height="15.0" fill="rgb(224,48,30)" rx="2" ry="2" />
+<text  x="24.43" y="255.5" >or..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getSeqno(PipelineAck.java:134) (40,872 samples, 0.09%)</title><rect x="937.3" y="389" width="1.1" height="15.0" fill="rgb(235,65,19)" rx="2" ry="2" />
+<text  x="940.29" y="399.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (4,349,914 samples, 9.69%)</title><rect x="545.9" y="293" width="114.4" height="15.0" fill="rgb(241,5,23)" rx="2" ry="2" />
+<text  x="548.90" y="303.5" >java.lang.Thre..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (511,262 samples, 1.14%)</title><rect x="37.5" y="149" width="13.5" height="15.0" fill="rgb(242,215,18)" rx="2" ry="2" />
+<text  x="40.54" y="159.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream.read(SocketInputStream.java:131) (12,958,432 samples, 28.88%)</title><rect x="205.1" y="309" width="340.8" height="15.0" fill="rgb(209,94,10)" rx="2" ry="2" />
+<text  x="208.14" y="319.5" >org.apache.hadoop.net.SocketInputStream.read(S..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (46,251 samples, 0.10%)</title><rect x="935.0" y="357" width="1.2" height="15.0" fill="rgb(240,212,2)" rx="2" ry="2" />
+<text  x="938.01" y="367.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (82,672 samples, 0.18%)</title><rect x="954.6" y="373" width="2.1" height="15.0" fill="rgb(218,94,44)" rx="2" ry="2" />
+<text  x="957.56" y="383.5" ></text>
+</g>
+<g >
+<title>com.google.protobuf.CodedInputStream.readTag(CodedInputStream.java:99) (1,124,016 samples, 2.50%)</title><rect x="21.4" y="229" width="29.6" height="15.0" fill="rgb(211,187,27)" rx="2" ry="2" />
+<text  x="24.43" y="239.5" >co..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (1,223,079 samples, 2.73%)</title><rect x="135.2" y="277" width="32.2" height="15.0" fill="rgb(215,215,53)" rx="2" ry="2" />
+<text  x="138.21" y="287.5" >xy..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (40,792 samples, 0.09%)</title><rect x="937.3" y="357" width="1.1" height="15.0" fill="rgb(249,39,24)" rx="2" ry="2" />
+<text  x="940.29" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto.parseFrom(DataTransferProtos.java:18916) (7,056,000 samples, 15.72%)</title><rect x="19.6" y="373" width="185.5" height="15.0" fill="rgb(211,189,38)" rx="2" ry="2" />
+<text  x="22.59" y="383.5" >org.apache.hadoop.hdfs.p..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.ExtendedBlock.toString(ExtendedBlock.java:125) (205,136 samples, 0.46%)</title><rect x="10.0" y="341" width="5.4" height="15.0" fill="rgb(217,143,48)" rx="2" ry="2" />
+<text  x="13.00" y="351.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (26,960 samples, 0.06%)</title><rect x="21.4" y="37" width="0.7" height="15.0" fill="rgb(251,93,15)" rx="2" ry="2" />
+<text  x="24.43" y="47.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (213,055 samples, 0.47%)</title><rect x="22.1" y="69" width="5.6" height="15.0" fill="rgb(217,194,8)" rx="2" ry="2" />
+<text  x="25.14" y="79.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (121,113 samples, 0.27%)</title><rect x="12.2" y="309" width="3.2" height="15.0" fill="rgb(227,55,33)" rx="2" ry="2" />
+<text  x="15.21" y="319.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (1,436,206 samples, 3.20%)</title><rect x="167.4" y="357" width="37.7" height="15.0" fill="rgb(224,143,19)" rx="2" ry="2" />
+<text  x="170.37" y="367.5" >xyz..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (82,672 samples, 0.18%)</title><rect x="954.6" y="357" width="2.1" height="15.0" fill="rgb(214,13,20)" rx="2" ry="2" />
+<text  x="957.56" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout.doIO(SocketIOWithTimeout.java:142) (26,960 samples, 0.06%)</title><rect x="21.4" y="85" width="0.7" height="15.0" fill="rgb(220,142,18)" rx="2" ry="2" />
+<text  x="24.43" y="95.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (39,611 samples, 0.09%)</title><rect x="936.2" y="373" width="1.1" height="15.0" fill="rgb(252,14,31)" rx="2" ry="2" />
+<text  x="939.24" y="383.5" ></text>
+</g>
+<g >
+<title>java.lang.StringBuilder.append(StringBuilder.java:131) (84,023 samples, 0.19%)</title><rect x="10.0" y="325" width="2.2" height="15.0" fill="rgb(210,85,1)" rx="2" ry="2" />
+<text  x="13.00" y="335.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (89,212 samples, 0.20%)</title><rect x="958.1" y="373" width="2.3" height="15.0" fill="rgb(224,3,51)" rx="2" ry="2" />
+<text  x="961.09" y="383.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto.&lt;init&gt;(DataTransferProtos.java:18637) (981,864 samples, 2.19%)</title><rect x="51.0" y="245" width="25.8" height="15.0" fill="rgb(253,44,36)" rx="2" ry="2" />
+<text  x="54.00" y="255.5" >o..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (49,962 samples, 0.11%)</title><rect x="956.8" y="341" width="1.3" height="15.0" fill="rgb(242,86,8)" rx="2" ry="2" />
+<text  x="959.77" y="351.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout$SelectorPool.select(SocketIOWithTimeout.java:373) (4,041,727 samples, 9.01%)</title><rect x="215.8" y="261" width="106.3" height="15.0" fill="rgb(233,80,8)" rx="2" ry="2" />
+<text  x="218.79" y="271.5" >org.apache.ha..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (5,981,814 samples, 13.33%)</title><rect x="777.7" y="357" width="157.3" height="15.0" fill="rgb(217,58,38)" rx="2" ry="2" />
+<text  x="780.70" y="367.5" >java.lang.Thread.get..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.ExtendedBlock.setNumBytes(ExtendedBlock.java:87) (49,962 samples, 0.11%)</title><rect x="956.8" y="373" width="1.3" height="15.0" fill="rgb(233,70,48)" rx="2" ry="2" />
+<text  x="959.77" y="383.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (4,460,857 samples, 9.94%)</title><rect x="660.4" y="341" width="117.3" height="15.0" fill="rgb(215,209,38)" rx="2" ry="2" />
+<text  x="663.40" y="351.5" >java.lang.Thre..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (1,149,877 samples, 2.56%)</title><rect x="105.0" y="261" width="30.2" height="15.0" fill="rgb(215,176,41)" rx="2" ry="2" />
+<text  x="107.97" y="271.5" >xy..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocolPB.PBHelperClient.vintPrefixed(PBHelperClient.java:407) (17,308,346 samples, 38.57%)</title><rect x="205.1" y="373" width="455.2" height="15.0" fill="rgb(220,73,5)" rx="2" ry="2" />
+<text  x="208.14" y="383.5" >org.apache.hadoop.hdfs.protocolPB.PBHelperClient.vintPrefixed(..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (100,813 samples, 0.22%)</title><rect x="948.1" y="357" width="2.7" height="15.0" fill="rgb(216,99,29)" rx="2" ry="2" />
+<text  x="951.11" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.Block.toString(Block.java:168) (5,621 samples, 0.01%)</title><rect x="10.0" y="277" width="0.1" height="15.0" fill="rgb(254,177,34)" rx="2" ry="2" />
+<text  x="13.00" y="287.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout.doIO(SocketIOWithTimeout.java:142) (166,445 samples, 0.37%)</title><rect x="205.1" y="277" width="4.4" height="15.0" fill="rgb(241,206,23)" rx="2" ry="2" />
+<text  x="208.14" y="287.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (45,280 samples, 0.10%)</title><rect x="960.5" y="373" width="1.2" height="15.0" fill="rgb(249,187,5)" rx="2" ry="2" />
+<text  x="963.49" y="383.5" ></text>
+</g>
+<g >
+<title>com.google.protobuf.CodedInputStream.refillBuffer(CodedInputStream.java:737) (1,124,016 samples, 2.50%)</title><rect x="21.4" y="197" width="29.6" height="15.0" fill="rgb(225,70,24)" rx="2" ry="2" />
+<text  x="24.43" y="207.5" >co..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (158,104 samples, 0.35%)</title><rect x="15.4" y="341" width="4.2" height="15.0" fill="rgb(238,50,19)" rx="2" ry="2" />
+<text  x="18.39" y="351.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (69,572 samples, 0.16%)</title><rect x="19.6" y="261" width="1.8" height="15.0" fill="rgb(211,81,8)" rx="2" ry="2" />
+<text  x="22.59" y="271.5" ></text>
+</g>
+<g >
+<title>java.lang.String.valueOf(String.java:2994) (84,023 samples, 0.19%)</title><rect x="10.0" y="309" width="2.2" height="15.0" fill="rgb(219,187,49)" rx="2" ry="2" />
+<text  x="13.00" y="319.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream$Reader.performIO(SocketInputStream.java:57) (166,445 samples, 0.37%)</title><rect x="205.1" y="261" width="4.4" height="15.0" fill="rgb(228,57,48)" rx="2" ry="2" />
+<text  x="208.14" y="271.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (135,504 samples, 0.30%)</title><rect x="944.5" y="373" width="3.6" height="15.0" fill="rgb(227,178,50)" rx="2" ry="2" />
+<text  x="947.53" y="383.5" ></text>
+</g>
+<g >
+<title>java.io.DataInputStream.read(DataInputStream.java:149) (612,754 samples, 1.37%)</title><rect x="21.4" y="149" width="16.1" height="15.0" fill="rgb(252,159,47)" rx="2" ry="2" />
+<text  x="24.43" y="159.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (78,402 samples, 0.17%)</title><rect x="10.1" y="277" width="2.1" height="15.0" fill="rgb(215,96,52)" rx="2" ry="2" />
+<text  x="13.15" y="287.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck$StatusFormat.getECN(PipelineAck.java:82) (101,253 samples, 0.23%)</title><rect x="948.1" y="373" width="2.7" height="15.0" fill="rgb(209,154,42)" rx="2" ry="2" />
+<text  x="951.10" y="383.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (8,682,278 samples, 19.35%)</title><rect x="961.7" y="389" width="228.3" height="15.0" fill="rgb(245,223,16)" rx="2" ry="2" />
+<text  x="964.69" y="399.5" >xyz.cnworkshop.Profilier.repor..</text>
+</g>
+<g >
+<title>java.io.FilterInputStream.read(FilterInputStream.java:133) (612,754 samples, 1.37%)</title><rect x="21.4" y="133" width="16.1" height="15.0" fill="rgb(207,52,17)" rx="2" ry="2" />
+<text  x="24.43" y="143.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (235,646 samples, 0.53%)</title><rect x="209.6" y="213" width="6.2" height="15.0" fill="rgb(246,200,47)" rx="2" ry="2" />
+<text  x="212.58" y="223.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream$Reader.performIO(SocketInputStream.java:57) (26,960 samples, 0.06%)</title><rect x="21.4" y="69" width="0.7" height="15.0" fill="rgb(228,91,51)" rx="2" ry="2" />
+<text  x="24.43" y="79.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.readFields(PipelineAck.java:214) (5,981,814 samples, 13.33%)</title><rect x="777.7" y="389" width="157.3" height="15.0" fill="rgb(234,64,30)" rx="2" ry="2" />
+<text  x="780.70" y="399.5" >org.apache.hadoop.hd..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (8,682,278 samples, 19.35%)</title><rect x="961.7" y="373" width="228.3" height="15.0" fill="rgb(229,180,42)" rx="2" ry="2" />
+<text  x="964.69" y="383.5" >java.lang.Thread.getStackTrace..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (4,289,233 samples, 9.56%)</title><rect x="433.1" y="293" width="112.8" height="15.0" fill="rgb(228,141,5)" rx="2" ry="2" />
+<text  x="436.11" y="303.5" >xyz.cnworksho..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (4,289,233 samples, 9.56%)</title><rect x="433.1" y="277" width="112.8" height="15.0" fill="rgb(208,167,13)" rx="2" ry="2" />
+<text  x="436.11" y="287.5" >java.lang.Thr..</text>
+</g>
+<g >
+<title>com.google.protobuf.AbstractParser.parseFrom(AbstractParser.java:217) (5,619,794 samples, 12.52%)</title><rect x="19.6" y="325" width="147.8" height="15.0" fill="rgb(249,72,6)" rx="2" ry="2" />
+<text  x="22.59" y="335.5" >com.google.protobu..</text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout$SelectorPool.select(SocketIOWithTimeout.java:325) (238,176 samples, 0.53%)</title><rect x="209.5" y="261" width="6.3" height="15.0" fill="rgb(252,41,15)" rx="2" ry="2" />
+<text  x="212.52" y="271.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (69,572 samples, 0.16%)</title><rect x="19.6" y="277" width="1.8" height="15.0" fill="rgb(220,214,46)" rx="2" ry="2" />
+<text  x="22.59" y="287.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (4,460,857 samples, 9.94%)</title><rect x="660.4" y="357" width="117.3" height="15.0" fill="rgb(229,118,0)" rx="2" ry="2" />
+<text  x="663.40" y="367.5" >xyz.cnworkshop..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto.&lt;init&gt;(DataTransferProtos.java:18508) (3,177,186 samples, 7.08%)</title><rect x="21.4" y="261" width="83.6" height="15.0" fill="rgb(222,218,1)" rx="2" ry="2" />
+<text  x="24.42" y="271.5" >org.apach..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (144,014 samples, 0.32%)</title><rect x="950.8" y="357" width="3.7" height="15.0" fill="rgb(254,158,1)" rx="2" ry="2" />
+<text  x="953.76" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1104) (328,419 samples, 0.73%)</title><rect x="948.1" y="405" width="8.6" height="15.0" fill="rgb(249,80,49)" rx="2" ry="2" />
+<text  x="951.10" y="415.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (41,412 samples, 0.09%)</title><rect x="938.4" y="357" width="1.1" height="15.0" fill="rgb(247,132,26)" rx="2" ry="2" />
+<text  x="941.38" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.util.LimitInputStream.read(LimitInputStream.java:85) (612,754 samples, 1.37%)</title><rect x="21.4" y="165" width="16.1" height="15.0" fill="rgb(210,46,40)" rx="2" ry="2" />
+<text  x="24.43" y="175.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (3,757,020 samples, 8.37%)</title><rect x="223.3" y="229" width="98.8" height="15.0" fill="rgb(207,62,7)" rx="2" ry="2" />
+<text  x="226.27" y="239.5" >java.lang.T..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (49,962 samples, 0.11%)</title><rect x="956.8" y="357" width="1.3" height="15.0" fill="rgb(220,156,10)" rx="2" ry="2" />
+<text  x="959.77" y="367.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (1,149,877 samples, 2.56%)</title><rect x="105.0" y="245" width="30.2" height="15.0" fill="rgb(241,169,53)" rx="2" ry="2" />
+<text  x="107.97" y="255.5" >ja..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto$1.parsePartialFrom(DataTransferProtos.java:18651) (5,550,142 samples, 12.37%)</title><rect x="21.4" y="293" width="146.0" height="15.0" fill="rgb(228,68,46)" rx="2" ry="2" />
+<text  x="24.42" y="303.5" >org.apache.hadoop...</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getNumOfReplies(PipelineAck.java:142) (42,002 samples, 0.09%)</title><rect x="938.4" y="389" width="1.1" height="15.0" fill="rgb(253,18,6)" rx="2" ry="2" />
+<text  x="941.37" y="399.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (235,646 samples, 0.53%)</title><rect x="209.6" y="229" width="6.2" height="15.0" fill="rgb(229,27,21)" rx="2" ry="2" />
+<text  x="212.58" y="239.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (4,222,631 samples, 9.41%)</title><rect x="322.1" y="261" width="111.0" height="15.0" fill="rgb(214,33,52)" rx="2" ry="2" />
+<text  x="325.07" y="271.5" >java.lang.Thr..</text>
+</g>
+<g >
+<title>com.google.protobuf.AbstractParser.parsePartialFrom(AbstractParser.java:200) (5,550,142 samples, 12.37%)</title><rect x="21.4" y="309" width="146.0" height="15.0" fill="rgb(236,81,24)" rx="2" ry="2" />
+<text  x="24.42" y="319.5" >com.google.protobu..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (213,055 samples, 0.47%)</title><rect x="22.1" y="85" width="5.6" height="15.0" fill="rgb(254,116,20)" rx="2" ry="2" />
+<text  x="25.14" y="95.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.util.LimitInputStream.read(LimitInputStream.java:89) (511,262 samples, 1.14%)</title><rect x="37.5" y="165" width="13.5" height="15.0" fill="rgb(238,96,49)" rx="2" ry="2" />
+<text  x="40.54" y="175.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (96,213 samples, 0.21%)</title><rect x="942.0" y="341" width="2.5" height="15.0" fill="rgb(228,175,54)" rx="2" ry="2" />
+<text  x="945.00" y="351.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1081) (46,451 samples, 0.10%)</title><rect x="935.0" y="405" width="1.2" height="15.0" fill="rgb(235,193,15)" rx="2" ry="2" />
+<text  x="938.00" y="415.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos$PipelineAckProto.isInitialized(DataTransferProtos.java:18760) (69,572 samples, 0.16%)</title><rect x="19.6" y="293" width="1.8" height="15.0" fill="rgb(249,105,29)" rx="2" ry="2" />
+<text  x="22.59" y="303.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1080) (34,811,177 samples, 77.58%)</title><rect x="19.6" y="405" width="915.4" height="15.0" fill="rgb(217,96,10)" rx="2" ry="2" />
+<text  x="22.59" y="415.5" >org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1080)</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (1,223,079 samples, 2.73%)</title><rect x="135.2" y="261" width="32.2" height="15.0" fill="rgb(234,222,17)" rx="2" ry="2" />
+<text  x="138.21" y="271.5" >ja..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getStatusFromHeader(PipelineAck.java:226) (231,967 samples, 0.52%)</title><rect x="942.0" y="389" width="6.1" height="15.0" fill="rgb(236,145,51)" rx="2" ry="2" />
+<text  x="945.00" y="399.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (372,739 samples, 0.83%)</title><rect x="27.7" y="85" width="9.8" height="15.0" fill="rgb(223,113,12)" rx="2" ry="2" />
+<text  x="30.74" y="95.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.Block.toString(Block.java:175) (84,023 samples, 0.19%)</title><rect x="10.0" y="293" width="2.2" height="15.0" fill="rgb(248,177,50)" rx="2" ry="2" />
+<text  x="13.00" y="303.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout$SelectorPool.get(SocketIOWithTimeout.java:418) (235,646 samples, 0.53%)</title><rect x="209.6" y="245" width="6.2" height="15.0" fill="rgb(221,16,24)" rx="2" ry="2" />
+<text  x="212.58" y="255.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (45,280 samples, 0.10%)</title><rect x="960.5" y="357" width="1.2" height="15.0" fill="rgb(235,145,30)" rx="2" ry="2" />
+<text  x="963.49" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1165) (139,515 samples, 0.31%)</title><rect x="956.8" y="405" width="3.6" height="15.0" fill="rgb(213,100,19)" rx="2" ry="2" />
+<text  x="959.77" y="415.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (981,864 samples, 2.19%)</title><rect x="51.0" y="229" width="25.8" height="15.0" fill="rgb(214,174,1)" rx="2" ry="2" />
+<text  x="54.00" y="239.5" >x..</text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream.read(SocketInputStream.java:161) (240,015 samples, 0.53%)</title><rect x="21.4" y="101" width="6.3" height="15.0" fill="rgb(247,163,2)" rx="2" ry="2" />
+<text  x="24.43" y="111.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocolPB.PBHelperClient.vintPrefixed(PBHelperClient.java:415) (4,464,797 samples, 9.95%)</title><rect x="660.3" y="373" width="117.4" height="15.0" fill="rgb(210,62,40)" rx="2" ry="2" />
+<text  x="663.29" y="383.5" >org.apache.had..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (4,222,631 samples, 9.41%)</title><rect x="322.1" y="277" width="111.0" height="15.0" fill="rgb(224,61,21)" rx="2" ry="2" />
+<text  x="325.07" y="287.5" >xyz.cnworksho..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (5,621 samples, 0.01%)</title><rect x="10.0" y="261" width="0.1" height="15.0" fill="rgb(230,212,35)" rx="2" ry="2" />
+<text  x="13.00" y="271.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$BlockToWrite.setNumBytes(DataStreamer.java:230) (89,212 samples, 0.20%)</title><rect x="958.1" y="389" width="2.3" height="15.0" fill="rgb(231,185,27)" rx="2" ry="2" />
+<text  x="961.09" y="399.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream.read(SocketInputStream.java:126) (4,349,914 samples, 9.69%)</title><rect x="545.9" y="325" width="114.4" height="15.0" fill="rgb(213,174,15)" rx="2" ry="2" />
+<text  x="548.90" y="335.5" >org.apache.had..</text>
+</g>
+<g >
+<title>all (44,872,604 samples, 100%)</title><rect x="10.0" y="421" width="1180.0" height="15.0" fill="rgb(216,138,9)" rx="2" ry="2" />
+<text  x="13.00" y="431.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (511,262 samples, 1.14%)</title><rect x="37.5" y="133" width="13.5" height="15.0" fill="rgb(215,152,45)" rx="2" ry="2" />
+<text  x="40.54" y="143.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (1,070,726 samples, 2.39%)</title><rect x="76.8" y="229" width="28.2" height="15.0" fill="rgb(241,48,5)" rx="2" ry="2" />
+<text  x="79.82" y="239.5" >j..</text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream.read(SocketInputStream.java:161) (8,669,199 samples, 19.32%)</title><rect x="205.1" y="293" width="228.0" height="15.0" fill="rgb(230,87,24)" rx="2" ry="2" />
+<text  x="208.14" y="303.5" >org.apache.hadoop.net.SocketIn..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DFSPacket.releaseBuffer(DFSPacket.java:202) (45,280 samples, 0.10%)</title><rect x="960.5" y="389" width="1.2" height="15.0" fill="rgb(213,218,14)" rx="2" ry="2" />
+<text  x="963.49" y="399.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (94,682 samples, 0.21%)</title><rect x="939.5" y="373" width="2.5" height="15.0" fill="rgb(241,126,4)" rx="2" ry="2" />
+<text  x="942.51" y="383.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1179) (45,520 samples, 0.10%)</title><rect x="960.5" y="405" width="1.2" height="15.0" fill="rgb(233,210,12)" rx="2" ry="2" />
+<text  x="963.49" y="415.5" ></text>
+</g>
+<g >
+<title>java.lang.StringBuilder.append(StringBuilder.java:131) (363,240 samples, 0.81%)</title><rect x="10.0" y="389" width="9.6" height="15.0" fill="rgb(211,27,25)" rx="2" ry="2" />
+<text  x="13.00" y="399.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (166,445 samples, 0.37%)</title><rect x="205.1" y="229" width="4.4" height="15.0" fill="rgb(235,17,34)" rx="2" ry="2" />
+<text  x="208.14" y="239.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream.read(SocketInputStream.java:131) (612,754 samples, 1.37%)</title><rect x="21.4" y="117" width="16.1" height="15.0" fill="rgb(208,217,25)" rx="2" ry="2" />
+<text  x="24.43" y="127.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1072) (363,450 samples, 0.81%)</title><rect x="10.0" y="405" width="9.6" height="15.0" fill="rgb(214,131,38)" rx="2" ry="2" />
+<text  x="13.00" y="415.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1082) (40,011 samples, 0.09%)</title><rect x="936.2" y="405" width="1.1" height="15.0" fill="rgb(238,90,29)" rx="2" ry="2" />
+<text  x="939.23" y="415.5" ></text>
+</g>
+<g >
+<title>com.google.protobuf.AbstractParser.parseFrom(AbstractParser.java:223) (5,619,794 samples, 12.52%)</title><rect x="19.6" y="341" width="147.8" height="15.0" fill="rgb(205,190,40)" rx="2" ry="2" />
+<text  x="22.59" y="351.5" >com.google.protobu..</text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (135,504 samples, 0.30%)</title><rect x="944.5" y="357" width="3.6" height="15.0" fill="rgb(246,17,47)" rx="2" ry="2" />
+<text  x="947.53" y="367.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1101) (42,092 samples, 0.09%)</title><rect x="938.4" y="405" width="1.1" height="15.0" fill="rgb(206,168,47)" rx="2" ry="2" />
+<text  x="941.37" y="415.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.DataStreamer$ResponseProcessor.run(DataStreamer.java:1102) (327,919 samples, 0.73%)</title><rect x="939.5" y="405" width="8.6" height="15.0" fill="rgb(239,161,4)" rx="2" ry="2" />
+<text  x="942.47" y="415.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketIOWithTimeout$SelectorPool.release(SocketIOWithTimeout.java:432) (282,707 samples, 0.63%)</title><rect x="215.8" y="245" width="7.5" height="15.0" fill="rgb(247,92,51)" rx="2" ry="2" />
+<text  x="218.84" y="255.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (41,412 samples, 0.09%)</title><rect x="938.4" y="373" width="1.1" height="15.0" fill="rgb(207,194,14)" rx="2" ry="2" />
+<text  x="941.38" y="383.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (94,682 samples, 0.21%)</title><rect x="939.5" y="357" width="2.5" height="15.0" fill="rgb(245,127,53)" rx="2" ry="2" />
+<text  x="942.51" y="367.5" ></text>
+</g>
+<g >
+<title>com.google.protobuf.AbstractParser.parseFrom(AbstractParser.java:49) (5,619,794 samples, 12.52%)</title><rect x="19.6" y="357" width="147.8" height="15.0" fill="rgb(237,125,24)" rx="2" ry="2" />
+<text  x="22.59" y="367.5" >com.google.protobu..</text>
+</g>
+<g >
+<title>com.google.protobuf.CodedInputStream.isAtEnd(CodedInputStream.java:701) (1,124,016 samples, 2.50%)</title><rect x="21.4" y="213" width="29.6" height="15.0" fill="rgb(212,61,50)" rx="2" ry="2" />
+<text  x="24.43" y="223.5" >co..</text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (121,113 samples, 0.27%)</title><rect x="12.2" y="325" width="3.2" height="15.0" fill="rgb(253,207,52)" rx="2" ry="2" />
+<text  x="15.21" y="335.5" ></text>
+</g>
+<g >
+<title>java.lang.Thread.getStackTrace(Thread.java:1559) (89,212 samples, 0.20%)</title><rect x="958.1" y="357" width="2.3" height="15.0" fill="rgb(231,61,15)" rx="2" ry="2" />
+<text  x="961.09" y="367.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (96,213 samples, 0.21%)</title><rect x="942.0" y="357" width="2.5" height="15.0" fill="rgb(222,29,10)" rx="2" ry="2" />
+<text  x="945.00" y="367.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (372,739 samples, 0.83%)</title><rect x="27.7" y="101" width="9.8" height="15.0" fill="rgb(228,40,35)" rx="2" ry="2" />
+<text  x="30.74" y="111.5" ></text>
+</g>
+<g >
+<title>xyz.cnworkshop.Profilier.report(Profilier.java:56) (3,940 samples, 0.01%)</title><rect x="660.3" y="341" width="0.1" height="15.0" fill="rgb(245,140,39)" rx="2" ry="2" />
+<text  x="663.29" y="351.5" ></text>
+</g>
+<g >
+<title>org.apache.hadoop.net.SocketInputStream.read(SocketInputStream.java:118) (12,958,432 samples, 28.88%)</title><rect x="205.1" y="325" width="340.8" height="15.0" fill="rgb(226,36,28)" rx="2" ry="2" />
+<text  x="208.14" y="335.5" >org.apache.hadoop.net.SocketInputStream.read(S..</text>
+</g>
+<g >
+<title>org.apache.hadoop.hdfs.protocol.datatransfer.PipelineAck.getHeaderFlag(PipelineAck.java:152) (94,682 samples, 0.21%)</title><rect x="939.5" y="389" width="2.5" height="15.0" fill="rgb(219,128,48)" rx="2" ry="2" />
+<text  x="942.51" y="399.5" ></text>
+</g>
+</g>
+</svg>
