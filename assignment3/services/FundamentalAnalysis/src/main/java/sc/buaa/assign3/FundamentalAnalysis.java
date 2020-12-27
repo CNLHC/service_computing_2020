@@ -2,10 +2,7 @@
 package sc.buaa.assignment3;
 
 public class FundamentalAnalysis{
-    public  String sayHello() {
-        return  "Hello world! FundamantalAnalysis" ;
-    }
-    public  String GetHistory() {
-        return "2";
+    public  String GetNews(String symbol) {
+        return "Mocking News for FundamentalAnalysis: "+ symbol ;
     }
 }

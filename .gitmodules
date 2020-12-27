@@ -2,19 +2,19 @@
 	path = assignment2/wsdream-dataset
 	url = git@github.com:wsdream/wsdream-dataset.git
 [submodule "assignment4/cassandra"]
-	path = assignment4/cassandra
+	path = assignment4/static-wala/cassandra
 	url = https://github.com/apache/cassandra
 [submodule "assignment4/hbase"]
-	path = assignment4/hbase
+	path = assignment4/static-wala/hbase
 	url = https://github.com/apache/hbase
 [submodule "assignment4/WALA"]
-	path = assignment4/WALA
+	path = assignment4/static-wala/WALA
 	url = https://github.com/wala/WALA.git
 [submodule "assignment4/agent/mapreduce-introduction"]
 	path = assignment4/agent/mapreduce-introduction
 	url = git@github.com:CNLHC/mapreduce-introduction.git
 [submodule "assignment4/FlameGraph"]
-	path = assignment4/FlameGraph
+	path = assignment4/agent/FlameGraph
 	url = https://github.com/brendangregg/FlameGraph
 [submodule "assignment3/unmanaged/attic-ode"]
 	path = assignment3/unmanaged/attic-ode

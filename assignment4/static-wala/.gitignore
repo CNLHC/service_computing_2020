@@ -1,0 +1,26 @@
+target
+project/target
+project/project
+project/.bloop
+*.bloop
+.bsp
+.metals
+
+# Created by https://www.toptal.com/developers/gitignore/api/scala,sbt
+# Edit at https://www.toptal.com/developers/gitignore?templates=scala,sbt
+
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+.history
+.cache
+.lib/
+.bsp
+
+*.class
+*.log
+
+/jars

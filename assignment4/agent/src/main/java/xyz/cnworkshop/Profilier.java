@@ -22,7 +22,7 @@ public class Profilier implements AutoCloseable {
 
     @Override
     public void close() {
-        System.out.println(("finalize"));
+        //System.out.println(("finalize"));
         for (FileWriter fp : flamestack_book.values()) {
             try {
                 fp.close();
@@ -49,9 +49,9 @@ public class Profilier implements AutoCloseable {
                        final long begin,
                        final long end
     ) {
-        System.out.printf("%s-Report: %d-%d\n", methodName, begin, end);
+        //System.out.printf("%s-Report: %d-%d\n", methodName, begin, end);
         Integer tid = Math.toIntExact(Thread.currentThread().getId());
-        System.out.printf("TID: %s\n", tid.toString());
+        //System.out.printf("TID: %s\n", tid.toString());
 
         List<StackTraceElement> stack = Arrays.asList(Thread.currentThread().getStackTrace());
         Collections.reverse(stack);

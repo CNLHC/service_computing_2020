@@ -34,23 +34,20 @@ public class Transformer implements ClassFileTransformer {
 
         try {
             for (final CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
-//                !behavior.getLongName().contains("java.lang")
-//                        &&
-//                        !behavior.getLongName().contains("sun.launcher.")
-//                        &&
-//                        !behavior.getLongName().contains("java.util.")
                 if (
-                        !behavior.getLongName().contains("sun.launcher.") &&
-                                !behavior.getLongName().contains("java.lang.invoke") &&
-                                !behavior.getLongName().contains("java.lang.Class") &&
-                                !behavior.getLongName().contains("java.util")
+                        behavior.getLongName().contains("org.apache.hadoop") 
+                        //!behavior.getLongName().contains("org.apache.hadoop.metrics2")  &&
+                        //!behavior.getLongName().contains("org.apache.hadoop.security")  &&
+                        //!behavior.getLongName().contains("org.apache.hadoop.fs")  &&
+                        //!behavior.getLongName().contains("org.apache.hadoop.hdfs")  &&
+                        //!behavior.getLongName().contains("org.apache.hadoop.io")  
+
+
+
                 ) {
+                    System.out.println("Instrument for "+ behavior.getLongName());
 
-//                    if (behavior.getLongName().contains("main")) {
-
-//                    System.out.printf("instrumenting %s\n", behavior.getLongName());
                     instrument(behavior);
-//                    }
                 }
             }
             return ctClass.toBytecode();
