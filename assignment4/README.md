@@ -4,7 +4,6 @@
 
 使用`scala`调用`WALA`工具, 统计[`cassandra`](./cassandra) 和 [`hbase`](./hbase)中含有`Replica`和`Replication`这两个关键字的类的数量，并分析调用关系。
 
-
 ### 复现方法
 
 1. 编译`cassandra` 和 `hbase`, 并准备后续分析需要使用的文件。
