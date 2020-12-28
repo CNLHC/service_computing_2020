@@ -52,6 +52,6 @@ curl localhost:4567/ode/processes/BasicInfo/process\?symbol=AAAl
 
 [BPELStandard]:http://docs.oasis-open.org/wsbpel/2.0/OS/wsbpel-v2.0-OS.html
 [Apache Axis]:http://axis.apache.org/axis2/java/core/
-[Apache ODE]:./unmanaged/attic-ode
+[Apache ODE]: http://ode.apache.org/
 [环境安装]:./installation.md
 [服务部署]:./installation.md
