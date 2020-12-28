@@ -2,9 +2,9 @@
 
 ## 背景介绍
 
-[BPEL(Business Process Execution Language)][BPELStandard]是一种基于XML的描述性语言，可以实现对SOA服务的调度。
+[BPEL(Business Process Execution Language)][#BPELStandard]是一种基于XML的描述性语言，可以实现对SOA服务的调度。
 
-本次实验中，我使用[Apache Axis](ApacheAxis)创建了四个Web服务，并使用[Apache ODE](ApacheODE)对他们进行编排。
+本次实验中，我使用 [Apache Axis] 建了四个Web服务，并使用 [Apache ODE] 对他们进行编排。
 
 ## 实验过程
 
@@ -13,11 +13,11 @@
 3. 编写`BPEL`文件和`WSDL`文件([bpel](./bpelContent/Login.bpel),[wsdl](./bpelContent/LoginArtifacts.wsdl))
 
 完成后的BPEL在编辑器中的图示
-![](./assets/BPElEditor.png)
+![](./assets/BPELEditor.png)
 
 完成后的WSDL在编辑器中的图示
 
-![]([./assets/WSDL.png])
+![](./assets/WSDL.png)
 
 4. 使用`tomcat`部署服务([服务部署])并测试
 
@@ -51,7 +51,7 @@ curl localhost:4567/ode/processes/BasicInfo/process\?symbol=AAAl
 
 
 [BPELStandard]:(http://docs.oasis-open.org/wsbpel/2.0/OS/wsbpel-v2.0-OS.html)
-[ApacheAxis]:(http://axis.apache.org/axis2/java/core/)
-[ApacheODE]:(./unmanaged/attic-ode)
-[环境安装]:(./installation.md)
-[服务部署]:(./installation.md)
+[Apache Axis]:http://axis.apache.org/axis2/java/core/
+[Apache ODE]:./unmanaged/attic-ode
+[环境安装]:./installation.md
+[服务部署]:./installation.md
