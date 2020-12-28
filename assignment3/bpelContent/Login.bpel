@@ -13,10 +13,10 @@
     <!-- List of services participating in this BPEL process               -->
     <!-- ================================================================= -->
     <bpel:partnerLinks>
-        <bpel:partnerLink name="GetBasicInfo" partnerLinkType="tns:BasicInfoLT" partnerRole="basicInfo" myRole="basicInfo" initializePartnerRole="yes"/>
+        <bpel:partnerLink name="GetBasicInfo" partnerLinkType="tns:BasicInfoLT" partnerRole="basicInfo" myRole="basicInfo"/>
         <bpel:partnerLink name="GetHistoryData" partnerLinkType="tns:HistoryDataLT" partnerRole="historyData" initializePartnerRole="yes"/>
-        <bpel:partnerLink name="TechnicalAnalysisLink" partnerLinkType="tns:TechnicalAnalysisLT" partnerRole="caller" initializePartnerRole="yes"></bpel:partnerLink>
-        <bpel:partnerLink name="FundamentalAnalysisLink" partnerLinkType="tns:FundamentalAnalysisLT" partnerRole="fundamentalAnalysis" initializePartnerRole="yes"></bpel:partnerLink>
+        <bpel:partnerLink name="TechnicalAnalysisLink" partnerLinkType="tns:TechnicalAnalysisLT" partnerRole="caller"></bpel:partnerLink>
+        <bpel:partnerLink name="FundamentAnalysisLink" partnerLinkType="tns:FundamentalAnalysisLT" partnerRole="fundamentalAnalysis"></bpel:partnerLink>
     </bpel:partnerLinks>
 
     <!-- ================================================================= -->
@@ -52,261 +52,59 @@
     <bpel:sequence name="main">        <!-- Receive input from requester. 
              Note: This maps to operation defined in Login.wsdl 
              -->
-
+        
         <bpel:receive name="ReceiveRequest" partnerLink="GetBasicInfo" operation="process" portType="tns:BasicInfoPT" variable="input" createInstance="yes"></bpel:receive>
-        <bpel:assign validate="yes" name="InitializationAssign">
-
-
-
-
-
-
-
-
-
-            <bpel:copy>
-                <bpel:from><bpel:literal><tns:ProcessResponse xmlns:tns="http://sc.buaa.assignment3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <tns:BasicInfo>tns:BasicInfo</tns:BasicInfo>
-  <tns:HistoryData>tns:HistoryData</tns:HistoryData>
-  <tns:TechnicalAnalysis>tns:TechnicalAnalysis</tns:TechnicalAnalysis>
-  <tns:FundamentalAnalysis>tns:FundamentalAnalysis</tns:FundamentalAnalysis>
-</tns:ProcessResponse>
+        <bpel:assign validate="no" name="InitializationAssign"><bpel:copy>
+                <bpel:from><bpel:literal><tns:FetchBasicInfo xmlns:tns="http://sc.buaa.assignment3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <tns:symbol>tns:symbol</tns:symbol>
+</tns:FetchBasicInfo>
 </bpel:literal></bpel:from>
-                <bpel:to variable="output" part="parameters"></bpel:to>
+                <bpel:to variable="isValid"></bpel:to>
             </bpel:copy>
             <bpel:copy>
-                <bpel:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    <![CDATA[concat("Mocking HistoryData: ",bpel:getVariableData('input', 'parameters','/tns:symbol'))]]>
+                <bpel:from><bpel:literal><tns:FetchHistoryData xmlns:tns="http://sc.buaa.assignment3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <tns:in>tns:in</tns:in>
+</tns:FetchHistoryData>
+</bpel:literal></bpel:from>
+                <bpel:to variable="FetchHistoryDataReq" part="parameters"></bpel:to>
+            </bpel:copy>
+            <bpel:copy>
+                <bpel:from><bpel:literal><tns:GenerateIndex xmlns:tns="http://sc.buaa.assignment3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <tns:in>tns:in</tns:in>
+</tns:GenerateIndex>
+</bpel:literal></bpel:from>
+                <bpel:to variable="GenerateIndexReq" part="parameters"></bpel:to>
+            </bpel:copy>
+            <bpel:copy>
+                <bpel:from><bpel:literal><tns:GetNews xmlns:tns="http://sc.buaa.assignment3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <tns:in>tns:in</tns:in>
+</tns:GetNews>
+</bpel:literal></bpel:from>
+                <bpel:to variable="GetNewsReq" part="parameters"></bpel:to>
+            </bpel:copy>
+            <bpel:copy>
+                <bpel:from part="parameters" variable="input">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:symbol]]></bpel:query>
                 </bpel:from>
-                <bpel:to part="parameters" variable="output">
-                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">
-                        <![CDATA[tns:HistoryData]]>
-                    </bpel:query>
+                <bpel:to part="parameters" variable="GetNewsReq">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:in]]></bpel:query>
                 </bpel:to>
             </bpel:copy>
             <bpel:copy>
-                <bpel:from>
-                    <bpel:literal>
-                        <tns:FetchBasicInfo xmlns:tns="http://sc.buaa.assignment3"
-                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                            <tns:symbol>tns:symbol</tns:symbol>
-                        </tns:FetchBasicInfo>
-                    </bpel:literal>
+                <bpel:from part="parameters" variable="input">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:symbol]]></bpel:query>
                 </bpel:from>
-                <bpel:to variable="BasicInfoReq" part="parameters"></bpel:to>
+                <bpel:to part="parameters" variable="GenerateIndexReq">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:in]]></bpel:query>
+                </bpel:to>
+            </bpel:copy>
+            <bpel:copy>
+                <bpel:from part="parameters" variable="input">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:symbol]]></bpel:query>
+                </bpel:from>
+                <bpel:to part="parameters" variable="FetchHistoryDataReq">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:in]]></bpel:query>
+                </bpel:to>
             </bpel:copy>
             <bpel:copy>
                 <bpel:from part="parameters" variable="input">
@@ -316,92 +114,155 @@
                     <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:symbol]]></bpel:query>
                 </bpel:to>
             </bpel:copy>
-            
             <bpel:copy>
                 <bpel:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">
                     
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    <![CDATA[concat("Mocking BasicInfo: ",bpel:getVariableData('input', 'parameters','/tns:symbol'))]]>
+                    <![CDATA[2]]>
                 </bpel:from>
-                <bpel:to part="parameters" variable="output">
-                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:BasicInfo]]></bpel:query>
-                </bpel:to>
+                <bpel:to variable="isValid"></bpel:to>
+            </bpel:copy>
+        
+        </bpel:assign>
+        <bpel:invoke name="InvokenvBasicInfo" partnerLink="GetBasicInfo" operation="FetchBasicInfo" portType="tns:BasicInfoPT" inputVariable="BasicInfoReq" outputVariable="BasicInfoResp"></bpel:invoke>
+
+
+
+        <bpel:if name="If" suppressJoinFailure="no">
+            <bpel:condition expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[$isValid > 0]]></bpel:condition>
+
+            <bpel:throw name="Throw"></bpel:throw>
+            <bpel:else>
+                <bpel:assign validate="no" name="AssignBasicInfo">
+                    <bpel:copy>
+                        <bpel:from>
+                            <bpel:literal>
+                                <tns:ProcessResponse xmlns:tns="http://sc.buaa.assignment3"
+                                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                                    <tns:BasicInfo>tns:BasicInfo</tns:BasicInfo>
+                                    <tns:HistoryData>tns:HistoryData</tns:HistoryData>
+                                    <tns:TechnicalAnalysis>tns:TechnicalAnalysis</tns:TechnicalAnalysis>
+                                    <tns:FundamentalAnalysis>tns:FundamentalAnalysis</tns:FundamentalAnalysis>
+                                </tns:ProcessResponse>
+                            </bpel:literal>
+                        </bpel:from>
+                        <bpel:to variable="output" part="parameters"></bpel:to>
+                    </bpel:copy>
+                    <bpel:copy>
+                        <bpel:from part="parameters" variable="BasicInfoResp">
+                            <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">
+                                <![CDATA[tns:out]]>
+                            </bpel:query>
+                        </bpel:from>
+                        <bpel:to part="parameters" variable="output">
+                            <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:BasicInfo]]></bpel:query>
+                        </bpel:to>
+                    </bpel:copy>
+                </bpel:assign>
+            </bpel:else>
+        </bpel:if>
+        <bpel:invoke name="InvokeHistoryData" partnerLink="GetHistoryData" operation="FetchHistoryData" portType="tns:HistoryDataPT" inputVariable="FetchHistoryDataReq" outputVariable="FetchHistoryDataResp"></bpel:invoke>
+        <bpel:assign validate="no" name="AssignHistoryData">
+            <bpel:copy>
+                <bpel:from>
+                    <bpel:literal>
+                        <tns:ProcessResponse xmlns:tns="http://sc.buaa.assignment3"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                            <tns:BasicInfo>tns:BasicInfo</tns:BasicInfo>
+                            <tns:HistoryData>tns:HistoryData</tns:HistoryData>
+                            <tns:TechnicalAnalysis>tns:TechnicalAnalysis</tns:TechnicalAnalysis>
+                            <tns:FundamentalAnalysis>tns:FundamentalAnalysis</tns:FundamentalAnalysis>
+                        </tns:ProcessResponse>
+                    </bpel:literal>
+                </bpel:from>
+                <bpel:to variable="output" part="parameters"></bpel:to>
             </bpel:copy>
             <bpel:copy>
-                <bpel:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    <![CDATA[concat("Mocking Report: ",bpel:getVariableData('input', 'parameters','/tns:symbol'))]]>
+                <bpel:from part="parameters" variable="FetchHistoryDataResp">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:out]]></bpel:query>
                 </bpel:from>
                 <bpel:to part="parameters" variable="output">
-                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:FundamentalAnalysis]]></bpel:query>
-                </bpel:to>
-            </bpel:copy>
-            <bpel:copy>
-                <bpel:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    <![CDATA[concat("Mocking Technical Index: ",bpel:getVariableData('input', 'parameters','/tns:symbol'))]]>
-                </bpel:from>
-                <bpel:to part="parameters" variable="output">
-                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:TechnicalAnalysis]]></bpel:query>
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:HistoryData]]></bpel:query>
                 </bpel:to>
             </bpel:copy>
         </bpel:assign>
-        <!-- <bpel:invoke name="InvokenvBasicInfo" partnerLink="GetBasicInfo" operation="FetchBasicInfo" portType="tns:BasicInfoPT" inputVariable="BasicInfoReq" outputVariable="BasicInfoResp"></bpel:invoke> -->
-        <bpel:reply name="replyOutput" partnerLink="GetBasicInfo" portType="tns:BasicInfoPT" operation="process" variable="output" />
 
-
-
-
-
-
-
-
-
+        <bpel:flow name="Flow">
+            <bpel:links>
+                <bpel:link name="link1"></bpel:link>
+                <bpel:link name="link2"></bpel:link>
+            </bpel:links>
+            <bpel:invoke name="InvoeFundamentalAnalysis" partnerLink="FundamentAnalysisLink" operation="GetNews" portType="tns:FundamentalAnalysisPT" inputVariable="GetNewsReq" outputVariable="GetNewsResp">
+                <bpel:sources>
+                    <bpel:source linkName="link2"></bpel:source>
+                </bpel:sources>
+            </bpel:invoke>
+            <bpel:invoke name="InvokeTechnicalAnalysis" partnerLink="TechnicalAnalysisLink" operation="GenerateIndex" portType="tns:TechnicalAnalysisPT" inputVariable="GenerateIndexReq" outputVariable="GenerateIndexResp">
+                <bpel:sources>
+                    <bpel:source linkName="link1"></bpel:source>
+                </bpel:sources>
+            </bpel:invoke>
+            <bpel:assign validate="no" name="AssignTechnicalAnalysis">
+                <bpel:targets>
+                    <bpel:target linkName="link1"></bpel:target>
+                </bpel:targets>
+                <bpel:copy>
+                    <bpel:from>
+                        <bpel:literal>
+                            <tns:ProcessResponse xmlns:tns="http://sc.buaa.assignment3"
+                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                                <tns:BasicInfo>tns:BasicInfo</tns:BasicInfo>
+                                <tns:HistoryData>tns:HistoryData</tns:HistoryData>
+                                <tns:TechnicalAnalysis>tns:TechnicalAnalysis</tns:TechnicalAnalysis>
+                                <tns:FundamentalAnalysis>tns:FundamentalAnalysis</tns:FundamentalAnalysis>
+                            </tns:ProcessResponse>
+                        </bpel:literal>
+                    </bpel:from>
+                    <bpel:to variable="output" part="parameters"></bpel:to>
+                </bpel:copy>
+                <bpel:copy>
+                    <bpel:from part="parameters" variable="GenerateIndexResp">
+                        <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:out]]></bpel:query>
+                    </bpel:from>
+                    <bpel:to part="parameters" variable="output">
+                        <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:TechnicalAnalysis]]></bpel:query>
+                    </bpel:to>
+                </bpel:copy>
+            </bpel:assign>
+            <bpel:assign validate="no" name="AssignFundamentalAnalysis">
+                <bpel:targets>
+                    <bpel:target linkName="link2"></bpel:target>
+                </bpel:targets>
+                <bpel:copy>
+                    <bpel:from>
+                        <bpel:literal>
+                            <tns:ProcessResponse xmlns:tns="http://sc.buaa.assignment3"
+                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                                <tns:BasicInfo>tns:BasicInfo</tns:BasicInfo>
+                                <tns:HistoryData>tns:HistoryData</tns:HistoryData>
+                                <tns:TechnicalAnalysis>tns:TechnicalAnalysis</tns:TechnicalAnalysis>
+                                <tns:FundamentalAnalysis>tns:FundamentalAnalysis</tns:FundamentalAnalysis>
+                            </tns:ProcessResponse>
+                        </bpel:literal>
+                    </bpel:from>
+                    <bpel:to variable="output" part="parameters"></bpel:to>
+                </bpel:copy>
+                <bpel:copy>
+                    <bpel:from part="parameters" variable="GetNewsResp">
+                        <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:out]]></bpel:query>
+                    </bpel:from>
+                    <bpel:to part="parameters" variable="output">
+                        <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[tns:FundamentalAnalysis]]></bpel:query>
+                    </bpel:to>
+                </bpel:copy>
+            </bpel:assign>
+        </bpel:flow>
 
 
         <!-- Generate reply to synchronous request -->
 
 
 
-
+        <bpel:reply name="replyOutput" partnerLink="GetBasicInfo" portType="tns:BasicInfoPT" operation="process" variable="output" />
 
 
     </bpel:sequence>
