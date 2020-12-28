@@ -41,11 +41,11 @@ bash $ASSIGNMENT4/post_process_results.sh
 
 [Cassandra]分析结果
 
-![](./static-wala/results/WALA_65_apache-cassandra-4.0-beta4-SNAPSHOT.jar.dot.svg)
+![](https://publicstatic.cnworkshop.xyz/sc2020_doc/cg/WALA_65_apache-cassandra-4.0-beta4-SNAPSHOT.jar.dot.svg)
 
 [HBase]分析结果(hbase-server 组件)
 
-![](./static-wala/results/WALA_72_hbase-server-3.0.0-SNAPSHOT.jar.dot.svg)
+![](https://publicstatic.cnworkshop.xyz/sc2020_doc/cg/WALA_72_hbase-server-3.0.0-SNAPSHOT.jar.dot.svg)
 
 ## 使用 LLVM 进行符号分析和测试用例生成
 
@@ -94,9 +94,9 @@ docker cp ./target/scala-2.12/sc_buaa_profiler.jar hadoop:/root/
 
 > 火焰图命名格式为 ${TID}.flametrace.svg , TID 表示线程 ID
 
-主线程运行结果(可点击[此处](https://raw.githubusercontent.com/CNLHC/service_computing_2020/master/assignment4/dynamic-agent/out/1.flametrace.svg)查看交互式火焰图):
+主线程运行结果(可点击[此处](https://publicstatic.cnworkshop.xyz/sc2020_doc/flame/1.flametrace.svg)查看交互式火焰图):
 
-![](./dynamic-agent/out/1.flametrace.svg)
+![](https://publicstatic.cnworkshop.xyz/sc2020_doc/flame/1.flametrace.svg)
 
 [WALA]: https://github.com/wala/WALA
 [Cassandra]: https://cassandra.apache.org/

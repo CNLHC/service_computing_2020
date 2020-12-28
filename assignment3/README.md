@@ -13,11 +13,11 @@
 3. 编写`BPEL`文件和`WSDL`文件([bpel](./bpelContent/Login.bpel),[wsdl](./bpelContent/LoginArtifacts.wsdl))
 
 完成后的BPEL在编辑器中的图示
-![](./assets/BPELEditor.png)
+![](https://publicstatic.cnworkshop.xyz/sc2020_doc/bpel/BPELEditor.png)
 
 完成后的WSDL在编辑器中的图示
 
-![](./assets/WSDL.png)
+![](https://publicstatic.cnworkshop.xyz/sc2020_doc/bpel/WSDL.png)
 
 4. 使用`tomcat`部署服务([服务部署])并测试
 
